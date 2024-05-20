@@ -48,6 +48,17 @@ async function fetchUserPosts(userId) {
     }
 }
 
+// Function to get comments count
+async function getPostsCount(userId) {
+    try {
+        const response = await fetch(`https://jsonplaceholder.typicode.com/posts?userId=${userId}`);
+        const data = await response.json();
+        return data.length;
+    } catch (error) {
+        throw new Error('Error fetching posts count:', error);
+    }
+}
+
 // Function to render user posts in a specified div
 function renderUserPosts(posts, postsDiv) {
     postsDiv.innerHTML = ''; // Clear previous posts
@@ -63,6 +74,12 @@ function renderUserPosts(posts, postsDiv) {
     });
 }
 
+// Function to render comments count
+async function renderPostsCount(noOfPosts) {
+    document.getElementById('posts-count').textContent = '';
+    document.getElementById('posts-count').textContent = noOfPosts;
+}
+
 // Function to fetch comments based on postId
 async function fetchPostComments(postId) {
     try {
@@ -71,6 +88,17 @@ async function fetchPostComments(postId) {
         return data;
     } catch (error) {
         throw new Error('Error fetching comments:', error);
+    }
+}
+
+// Function to get comments count
+async function getCommentsCount(postId) {
+    try {
+        const response = await fetch(`https://jsonplaceholder.typicode.com/comments?postId=${postId}`);
+        const data = await response.json();
+        return data.length;
+    } catch (error) {
+        throw new Error('Error fetching comments count:', error);
     }
 }
 
@@ -87,6 +115,12 @@ function renderComments(comments, commentsDiv) {
       `;
         commentsDiv.appendChild(commentElement);
     });
+}
+
+// Function to render comments count
+async function renderCommentsCount(noOfComments) {
+    document.getElementById('comments-count').textContent = '';
+    document.getElementById('comments-count').textContent = noOfComments;
 }
 
 // Main function to initialize the application
@@ -112,10 +146,14 @@ async function initApp() {
         const defaultUserPosts = await fetchUserPosts(defaultUserId);
         renderUserPosts(defaultUserPosts, postsDiv, commentsDiv);
 
+        renderPostsCount(await getPostsCount(defaultUserId));
+
         // Fetch and render comments of the first post
         const defaultPostId = defaultUserPosts[0].id;
         const defaultPostComments = await fetchPostComments(defaultPostId);
         renderComments(defaultPostComments, commentsDiv);
+
+        renderCommentsCount(await getCommentsCount(defaultPostId));
 
         // Event listener for changes in the selected option
         selectElement.addEventListener('change', async function () {
@@ -127,18 +165,21 @@ async function initApp() {
                 const posts = await fetchUserPosts(selectedUserId);
                 renderUserPosts(posts, postsDiv);
 
+                renderPostsCount(await getPostsCount(defaultUserId));
+
                 // Fetch and render comments of the first post
                 const firstPostId = posts[0].id;
                 const comments = await fetchPostComments(firstPostId);
                 renderComments(comments, commentsDiv);
-
+                renderCommentsCount(await getCommentsCount(firstPostId));
+                
                 // Add event listeners to each post
                 postsDiv.querySelectorAll('div').forEach(postElement => {
                     postElement.addEventListener('click', async function () {
-                        console.log('clicked' + this.dataset.postId);
                         const postId = parseInt(this.dataset.postId);
                         const comments = await fetchPostComments(postId);
                         renderComments(comments, commentsDiv);
+                        renderCommentsCount(await getCommentsCount(postId));
                     });
                 });
             } catch (error) {
@@ -152,4 +193,3 @@ async function initApp() {
 
 // Call the initApp function to start the application
 initApp();
-

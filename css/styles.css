@@ -147,6 +147,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: flex-start;
+    gap: 15px;
 }
 
 #feed .top-bar a {
@@ -212,6 +213,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: flex-start;
+    gap: 15px;
 }
 
 #engagement .top-bar a {
