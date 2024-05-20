@@ -60,17 +60,39 @@ async function getPostsCount(userId) {
 }
 
 // Function to render user posts in a specified div
-function renderUserPosts(posts, postsDiv) {
+function renderUserPosts(posts, postsDiv, user) {
+    const commentsDiv = document.getElementById('comments');
+
     postsDiv.innerHTML = ''; // Clear previous posts
     posts.forEach(post => {
         const postElement = document.createElement('div');
         postElement.classList.add('post');
         postElement.dataset.postId = post.id;
-        postElement.innerHTML = `
-        <h3>${post.title}</h3>
-        <p>${post.body}</p>
-      `;
+
+        getCommentsCount(post.id)
+        .then(commentsCount => {
+            postElement.innerHTML = `
+            <div class="user">
+                <img src="./images/pfp.svg" alt="">
+                <h4>${user.name}</h4>
+                <p>@${user.username}</p>
+            </div>
+            <h3>${post.title}</h3>
+            <p>${post.body}</p>
+            <p><span><i class="fa-regular fa-comment-dots"></i> ${commentsCount}</span> <span><i class="fa-solid fa-retweet"></i></span> <span><i class="fa-solid fa-heart"></i></span> </p>
+          `;
+        });
+
         postsDiv.appendChild(postElement);
+
+        postsDiv.querySelectorAll('div').forEach(postElement => {
+            postElement.addEventListener('click', async function () {
+                const postId = parseInt(this.dataset.postId);
+                const comments = await fetchPostComments(postId);
+                renderComments(comments, commentsDiv);
+                renderCommentsCount(await getCommentsCount(postId));
+            });
+        });
     });
 }
 
@@ -109,9 +131,13 @@ function renderComments(comments, commentsDiv) {
         const commentElement = document.createElement('div');
         commentElement.classList.add('comment');
         commentElement.innerHTML = `
+        <div>
+            <img src="./images/pfp.svg" alt="">
+            <p><em>${comment.email}</em></p>
+        </div>
         <h4>${comment.name}</h4>
         <p>${comment.body}</p>
-        <p><em>${comment.email}</em></p>
+        <p><span><i class="fa-regular fa-comment-dots"></i></span> <span><i class="fa-solid fa-retweet"></i></span> <span><i class="fa-solid fa-heart"></i></span> </p>
       `;
         commentsDiv.appendChild(commentElement);
     });
@@ -144,7 +170,7 @@ async function initApp() {
 
         // Fetch and render posts of the first user
         const defaultUserPosts = await fetchUserPosts(defaultUserId);
-        renderUserPosts(defaultUserPosts, postsDiv, commentsDiv);
+        renderUserPosts(defaultUserPosts, postsDiv, defaultUser);
 
         renderPostsCount(await getPostsCount(defaultUserId));
 
@@ -163,7 +189,7 @@ async function initApp() {
 
             try {
                 const posts = await fetchUserPosts(selectedUserId);
-                renderUserPosts(posts, postsDiv);
+                renderUserPosts(posts, postsDiv, selectedUser);
 
                 renderPostsCount(await getPostsCount(defaultUserId));
 
@@ -172,16 +198,16 @@ async function initApp() {
                 const comments = await fetchPostComments(firstPostId);
                 renderComments(comments, commentsDiv);
                 renderCommentsCount(await getCommentsCount(firstPostId));
-                
+
                 // Add event listeners to each post
-                postsDiv.querySelectorAll('div').forEach(postElement => {
-                    postElement.addEventListener('click', async function () {
-                        const postId = parseInt(this.dataset.postId);
-                        const comments = await fetchPostComments(postId);
-                        renderComments(comments, commentsDiv);
-                        renderCommentsCount(await getCommentsCount(postId));
-                    });
-                });
+                // postsDiv.querySelectorAll('div').forEach(postElement => {
+                //     postElement.addEventListener('click', async function () {
+                //         const postId = parseInt(this.dataset.postId);
+                //         const comments = await fetchPostComments(postId);
+                //         renderComments(comments, commentsDiv);
+                //         renderCommentsCount(await getCommentsCount(postId));
+                //     });
+                // });
             } catch (error) {
                 handleFetchError(error);
             }
