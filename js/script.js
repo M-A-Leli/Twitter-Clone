@@ -69,18 +69,27 @@ function renderUserPosts(posts, postsDiv, user) {
         postElement.classList.add('post');
         postElement.dataset.postId = post.id;
 
-        getCommentsCount(post.id)
-        .then(commentsCount => {
-            postElement.innerHTML = `
-            <div class="user">
-                <img src="./images/pfp.svg" alt="">
-                <h4>${user.name}</h4>
-                <p>@${user.username}</p>
-            </div>
-            <h3>${post.title}</h3>
-            <p>${post.body}</p>
-            <p><span><i class="fa-regular fa-comment-dots"></i> ${commentsCount}</span> <span><i class="fa-solid fa-retweet"></i></span> <span><i class="fa-solid fa-heart"></i></span> </p>
-          `;
+        fetchPostComments(post.id).then(comments => {
+            const commentsDiv = document.createElement('div');
+            commentsDiv.classList.add('comments');
+            
+            renderComments(comments, commentsDiv);
+
+            getCommentsCount(post.id)
+            .then(commentsCount => {
+                postElement.innerHTML = `
+                <div class="user">
+                    <img src="./images/pfp.svg" alt="">
+                    <h4>${user.name}</h4>
+                    <p>@${user.username}</p>
+                </div>
+                <h3>${post.title}</h3>
+                <p>${post.body}</p>
+                <p><span><i class="fa-regular fa-comment-dots"></i> ${commentsCount}</span> <span><i class="fa-solid fa-retweet"></i></span> <span><i class="fa-solid fa-heart"></i></span> </p>
+              `;
+
+              postElement.appendChild(commentsDiv);
+            });
         });
 
         postsDiv.appendChild(postElement);
